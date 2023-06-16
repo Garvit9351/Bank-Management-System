@@ -1,3 +1,4 @@
+
 #include<iostream>
 #include<iomanip>
 #include<fstream>
@@ -66,6 +67,17 @@ void Bank_Account::create_Account(){
 	//System("CLS");
 	cout<<"\t Enter the account number ";
 	cin>>account_number;
+	 ifstream inFile("account.data", ios::binary);
+    Bank_Account ac;
+    while (inFile.read(reinterpret_cast<char*>(&ac), sizeof(Bank_Account))) {
+        if (ac.retacno() == account_number) {
+            cout << "Account number already exists. Please choose a different account number." << endl;
+            inFile.close();
+            return;
+        }
+    }
+    inFile.close();
+
 	cout<<"enter the name of account holder ";
 	cin.ignore();
 	cin.getline(name,50);
@@ -78,6 +90,15 @@ void Bank_Account::create_Account(){
     do {
         cout << "Enter the PIN for the account: ";
         cin >> pin;
+        inFile.open("account.data", ios::binary);
+    while (inFile.read(reinterpret_cast<char*>(&ac), sizeof(Bank_Account))) {
+        if (ac.checkPIN(pin)) {
+            cout << "PIN already exists. Please choose a different PIN." << endl;
+            inFile.close();
+            return;
+        }
+    }
+       inFile.close();
         int reenteredPIN;
         cout << "Reenter the PIN for verification: ";
         cin >> reenteredPIN;
@@ -163,7 +184,7 @@ void delete_account(int n){
 	Bank_Account ac;
 	ifstream inFile;
 	ofstream outFile;
-	inFile.open("account.dat",ios::binary);
+	inFile.open("account.data",ios::binary);
 	if(!inFile){
 		cout<<"\n File could not be open || press any ";
 		return;
@@ -178,7 +199,7 @@ void delete_account(int n){
 	}
 	inFile.close();
 	outFile.close();
-	remove("Bank_account.dat");
+	remove("Bank_account.data");
 	rename("Temp.dat","Bank_account.dat");
 	cout<<"record is deleted";
 }
@@ -186,7 +207,7 @@ void display_details(int n){
 	Bank_Account ac;
 	bool flag=false;
 	ifstream inFile;
-	inFile.open("account.dat",ios::binary);
+	inFile.open("account.data",ios::binary);
 	if(!inFile){
 		cout<<"File could not be open||press any key...";
 		return;
@@ -210,41 +231,41 @@ void display_details(int n){
 	if(flag==false)
 		cout<<"\n\n\tBank_Account number does not exist";
 }
-void display_all(){
-	system("cls");
-	Bank_Account ac;
-	ifstream inFile;
-	inFile.open("account.dat",ios::binary|ios::app);
-	if(!inFile){
-		cout<<"press any key ";
-		return;
-	}
-	if(ac.isAdmin()){	
-	cout<<"\n\n\t\tBank_Account HOLDER LIST\n\n";
-	cout<<"A/c no.      NAME           Type  Balance\n";
-	while(inFile.read(reinterpret_cast<char *> (&ac), sizeof(Bank_Account)))
-	{
-	if (ac.getAccNo() != -953275650) // Check if the account number is not equal to the garbage value
-		{
-			ac.report();
-		}
-	}
+void display_all() {
+    system("cls");
+    Bank_Account ac;
+    ifstream inFile;
 
+    inFile.open("account.data", ios::binary);
+    if (!inFile) {
+        cout << "File could not be opened. Press any key..." << endl;
+        return;
+    }
+
+    bool isAdmin;
+    cout << "Enter the admin password: ";
+    string password;
+    cin >> password;
+    isAdmin = (password == adminPassword);
+
+    cout << "\n\n\t\tBank Account HOLDER LIST\n\n";
+    cout << "A/c no.      NAME           Type  Balance\n";
+    while (inFile.read(reinterpret_cast<char*>(&ac), sizeof(Bank_Account))) {
+        if (ac.retacno() != -953275650 && isAdmin) {
+            ac.report();
+        }
+    }
+
+    inFile.close();
 }
-else{
-	cout<<"Access denied! Invalid admin password."<<endl;
-}
-	inFile.close();
-	
-	
-}
+
 void Money_deposit_withdraw(int n,int option ){
 	int amt;
 	bool found=false;
 	int enteredPIN;
 	Bank_Account ac;
 	fstream File;
-	File.open("account.dat",ios::binary|ios::in|ios::out);
+	File.open("account.data",ios::binary|ios::in|ios::out);
 	if(!File){
 		cout<<"File could not be open|| Press any key...";
 		return;
@@ -292,6 +313,5 @@ void Money_deposit_withdraw(int n,int option ){
 	 
 	
 }
-
 
 
